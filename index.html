@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8" />
+	<title>Fern</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<style>
+		body {
+			margin: 0;
+			padding: 0;
+		}
+		canvas {
+			width: 100vw;
+			height: 100vh;
+			display: block;
+		}
+	</style>
+	<script type="text/javascript">
+	(() => {
+		let canvas
+		let ctx
+		let pos = [0, 0, 1] // [x, y, 1]
+		let toScreen
+		let N = 5000
+
+		const matMulVec = (mat, vector) =>
+			mat.map(row =>
+				row.reduce((sum, field, index) =>
+					sum + field * vector[index],
+					0))
+		const setupCanvas = () => {
+			canvas = document.getElementById('canvas')
+			canvas.width = canvas.clientWidth
+			canvas.height = canvas.clientHeight
+			toScreen = vec => matMulVec([
+				[canvas.width / 6, 0, canvas.width / 2],
+				[0, -canvas.height / 10, canvas.height],
+				[0, 0, 1]
+			], vec)
+			ctx = canvas.getContext('2d')
+			requestAnimationFrame(draw)
+		}
+		const drawPointOnScreen = (pos, size) => ctx.fillRect(pos[0] - size/2, pos[1] - size/2, size, size)
+		const drawPoint = (pos, size) => drawPointOnScreen(toScreen(pos), size)
+		const transformFern = pos => {
+			const prob = Math.random()
+			if(prob < 0.01){
+				return matMulVec([
+						[0, 0, 0],
+						[0, 0.16, 0],
+						[0, 0, 1]
+					], pos)
+			} else if(prob < 0.86){
+				return matMulVec([
+						[0.85, 0.04, 0],
+						[-0.04, 0.85, 1.6],
+						[0, 0, 1]
+					], pos)
+			} else if(prob < 0.93){
+				return matMulVec([
+						[0.2, -0.26, 0],
+						[0.23, 0.22, 1.6],
+						[0, 0, 1]
+					], pos)
+			} else {
+				return matMulVec([
+						[-0.15, 0.28, 0],
+						[0.26, 0.24, 0.44],
+						[0, 0, 1]
+					], pos)
+			}
+		}
+		const draw = () => {
+			canvas = document.getElementById('canvas')
+			ctx = canvas.getContext('2d')
+			ctx.fillStyle = 'green'
+			for(let i = 0; i < N; i++){
+				drawPoint(pos, 0.5)
+				pos = transformFern(pos)
+			}
+			N = Math.max(1, N-1)
+			requestAnimationFrame(draw)
+		}
+		requestAnimationFrame(setupCanvas)
+	})()
+	</script>
+</head>
+<body>
+	<canvas id="canvas" />
+</body>
+</html>
